@@ -21,7 +21,7 @@ greyscale image.
 
    **A**: 
 
-5. **Q**: Apply the previous smoothing filter to the noisy image by performing the matrix vector multiplication $A_{1w}$. Export and upload the resulting image.
+5. **Q**: Apply the previous smoothing filter to the noisy image by performing the matrix vector multiplication $A_{1}w$. Export and upload the resulting image.
 
    **A**: 
 
