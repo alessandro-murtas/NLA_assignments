@@ -17,7 +17,7 @@ greyscale image.
 
 3. **Q**: Reshape the original and noisy images as vectors $v$ and $w$, respectively. Verify that each vector has m n components. Report here the Euclidean norm of $v$.
 
-   **A**: 
+   **A**: $||v||=41415.3$
 
 4. **Q**: Write the convolution operation corresponding to the smoothing kernel $H_{av1}$ as a matrix vector multiplication between a matrix $A_1$ having size $mn \times mn$ and the image vector. Report the number of non-zero entries in $A_1$.
 
