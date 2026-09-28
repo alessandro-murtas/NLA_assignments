@@ -7,7 +7,7 @@ greyscale image.
 **Tasks**:
 1. **Q**: Load the image as an Eigen matrix with size $m \times n$. Each entry in the matrix corresponds to a pixel on the screen and takes a value somewhere between 0 (black) and 255 (white). Report the size of the matrix.
 
-   **A**: 
+   **A**: 656x656
 
 2. **Q**: Introduce a noise signal into the loaded image by adding random fluctuations of color ranging between $[−50, 50]$ to each pixel. Export the resulting image in **.png** and upload it.
 

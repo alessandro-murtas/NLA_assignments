@@ -1,9 +1,30 @@
 #include <Eigen/Dense>
+#include <iostream>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+using namespace Eigen;
 
 int main() {
 	// Load the image as an Eigen matrix with size m x n. Each entry in the matrix corresponds
 	// to a pixel on the screen and takes a value somewhere between 0 (black) and 255 (white).
 	// Report the size of the matrix.
+
+	const char* input_image_path = "res/deer.jpg";
+
+	// Load the image using stb_image
+	int m, n, channels;
+	// for greyscale images force to load only one channel
+	unsigned char* image_data = stbi_load(input_image_path, &m, &n, &channels, 1);
+	if (!image_data) {
+		std::cerr << "Error: Could not load image " << input_image_path << std::endl;
+		return 1;
+	}
+
+	std::cout << "Image loaded: " << m << "x" << n << std::endl;
 
 	// Introduce a noise signal into the loaded image by adding random fluctuations of color
 	// ranging between [−50, 50] to each pixel. Export the resulting image in .png and upload it.
