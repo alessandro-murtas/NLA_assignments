@@ -1,4 +1,4 @@
-#include <Eigen>
+#include <Eigen/Dense>
 
 int main() {
 	// Load the image as an Eigen matrix with size m x n. Each entry in the matrix corresponds
