@@ -11,7 +11,9 @@ greyscale image.
 
 2. **Q**: Introduce a noise signal into the loaded image by adding random fluctuations of color ranging between $[−50, 50]$ to each pixel. Export the resulting image in **.png** and upload it.
 
-   **A**: 
+   **A**: [noisy.png](res/noisy.png)
+   
+   <img src="res/noisy.png" alt="noisy image" width="200"/>
 
 3. **Q**: Reshape the original and noisy images as vectors $v$ and $w$, respectively. Verify that each vector has m n components. Report here the Euclidean norm of $v$.
 

@@ -24,10 +24,28 @@ int main() {
 		return 1;
 	}
 
+	Matrix<unsigned char, Dynamic, Dynamic, RowMajor> image_mat(n, m);
+
+	// Fill the matrices with image data
+	for (int i = 0; i < m; ++i) {
+		for (int j = 0; j < n; ++j) {
+			int index = (i * m + j);
+			image_mat(i, j) = image_data[index];
+		}
+	}
+
 	std::cout << "Image loaded: " << m << "x" << n << std::endl;
 
 	// Introduce a noise signal into the loaded image by adding random fluctuations of color
 	// ranging between [−50, 50] to each pixel. Export the resulting image in .png and upload it.
+
+	Matrix<double, Dynamic, Dynamic, RowMajor> noisy_image = (image_mat.cast<double>() + (MatrixXd::Random(m, n) * 50)).cwiseMax(0.0).cwiseMin(255.0);
+	Matrix<unsigned char, Dynamic, Dynamic, RowMajor> saved_image = noisy_image.cast<unsigned char>();
+
+	const std::string output_image_path = "res/noisy.png";
+  	if (stbi_write_png(output_image_path.c_str(), m, n, 1, saved_image.data(), m) == 0) {
+    	std::cerr << "Error: Could not save grayscale image" << std::endl;
+	}
 
 	// Reshape the original and noisy images as vectors vand w, respectively. Verify that each
 	// vector has m n components. Report here the Euclidean norm of v.
