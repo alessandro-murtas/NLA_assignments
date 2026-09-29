@@ -1,4 +1,6 @@
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
+
 #include <iostream>
 #include <cstdint>
 
@@ -32,10 +34,11 @@ int main() {
 	// Introduce a noise signal into the loaded image by adding random fluctuations of color
 	// ranging between [−50, 50] to each pixel. Export the resulting image in .png and upload it.
 
-	Matrix<uint8_t, Dynamic, Dynamic, RowMajor> noisy_image = (original_image.cast<double>() + (MatrixXd::Random(m, n) * 50)).cwiseMax(0.0).cwiseMin(255.0).cast<uint8_t>();
+	Matrix<double, Dynamic, Dynamic, RowMajor> noisy_image = (original_image.cast<double>() + (MatrixXd::Random(m, n) * 50)).cwiseMax(0.0).cwiseMin(255.0);
+	Matrix<uint8_t, Dynamic, Dynamic, RowMajor> save_noisy_image = noisy_image.cast<uint8_t>();
 
 	const char* output_image_path = "res/noisy.png";
-  	if (stbi_write_png(output_image_path, m, n, 1, noisy_image.data(), m) == 0) {
+  	if (stbi_write_png(output_image_path, m, n, 1, save_noisy_image.data(), m) == 0) {
     	std::cerr << "Error: Could not save grayscale image" << std::endl;
 		return 1;
 	}
@@ -46,7 +49,7 @@ int main() {
 	// vector has m n components. Report here the Euclidean norm of v.
 
 	auto v = Map<const Matrix<uint8_t, Dynamic, 1>>(original_image.data(), original_image.size()).cast<double>();
-	auto w = Map<const Matrix<uint8_t, Dynamic, 1>>(noisy_image.data()	 , noisy_image	 .size());
+	auto w = Map<const Matrix<double, Dynamic, 1>>(noisy_image.data()	 , noisy_image	 .size());
 
 	std::cout << "Task 3: Euclidean norm of v ||v||=" << v.norm() << std::endl;
 
@@ -54,8 +57,61 @@ int main() {
 	// vector multiplication between a matrix A1 having size mn x mn and the image vector.
 	// Report the number of non-zero entries in A1.
 
+	size_t A1_size = m*n;
+	SparseMatrix<double> A1(A1_size, A1_size);
+
+	A1.reserve(VectorXi::Constant(A1_size,9)); // The 3x3 filter requires 9 nnz entries for each column except for pixels at the borders that require less
+
+	for(int i = 0; i < A1_size; i++) {
+		int row = i / n;
+		int col = i % n;
+
+		bool firstCol = (col == 0);
+		bool lastCol  = (col == m-1);
+		bool firstRow = (row == 0);
+		bool lastRow  = (row == n-1);
+
+		A1.insert(i,i) = 4;
+		if(!firstCol) {
+			A1.insert(i, i-1) = 1;
+			if(!firstRow) {
+				A1.insert(i, i-1-n) = 1;
+			}
+			if(!lastRow) {
+				A1.insert(i, i-1+n) = 1;
+			}
+		}
+		if(!lastCol) {
+			A1.insert(i, i+1) = 1;
+			if(!firstRow) {
+				A1.insert(i, i+1-n) = 1;
+			}
+			if(!lastRow) {
+				A1.insert(i, i+1+n) = 1;
+			}
+		}
+		if(!firstRow) {
+			A1.insert(i, i-n) = 1;
+		}
+		if(!lastRow) {
+			A1.insert(i, i+n) = 1;
+		}
+	}
+	A1 /= 12;
+
+	std::cout << "Task 4: nnz(A1)=" << A1.nonZeros() << std::endl;
 	// Apply the previous smoothing filter to the noisy image by performing the matrix vector
 	// multiplication A1w. Export and upload the resulting image.
+
+	Vector<double, Dynamic> smoothed_noisy = A1*w;
+	Vector<uint8_t, Dynamic> save_image = smoothed_noisy.cast<uint8_t>();
+
+	const char* smoothed_noisy_image_path = "res/smoothed_noisy.png";
+  	if (stbi_write_png(smoothed_noisy_image_path, m, n, 1, save_image.data(), m) == 0) {
+    	std::cerr << "Error: Could not save grayscale image" << std::endl;
+		return 1;
+	}
+	std::cout << "Task 5: Image saved to " << smoothed_noisy_image_path << std::endl;
 
 	// Write the convolution operation corresponding to the sharpening kernel Hsh1 as a matrix
 	// vector multiplication by a matrix A2 having size mn x mn. Report the number of non-zero

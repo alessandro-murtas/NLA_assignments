@@ -21,11 +21,13 @@ greyscale image.
 
 4. **Q**: Write the convolution operation corresponding to the smoothing kernel $H_{av1}$ as a matrix vector multiplication between a matrix $A_1$ having size $mn \times mn$ and the image vector. Report the number of non-zero entries in $A_1$.
 
-   **A**: 
+   **A**: $\text{nnz}(A_1)=3865156$
 
 5. **Q**: Apply the previous smoothing filter to the noisy image by performing the matrix vector multiplication $A_{1}w$. Export and upload the resulting image.
 
-   **A**: 
+   **A**: [smoothed_noisy.png](res/smoothed_noisy.png)
+   
+   <img src="res/smoothed_noisy.png" alt="smoothed noisy image" width="200"/>
 
 6. **Q**: Write the convolution operation corresponding to the sharpening kernel $H_{sh1}$ as a matrix vector multiplication by a matrix $A_2$ having size $mn \times mn$. Report the number of non-zero entries in $A_2$. Is $A_2$ symmetric?
 
