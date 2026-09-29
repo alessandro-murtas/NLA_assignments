@@ -11,6 +11,52 @@
 
 using namespace Eigen;
 
+// Funzione per convertire filtro lxl in sparse matrix per applicarlo a moltiplicazione vettore-matrice di dimensione mn x mn
+// Input:
+// - matrice filtro
+// - larghezza
+// - altezza
+// Output:
+// - matrice sparsa
+template<typename T>
+SparseMatrix<T> createConvolutionMatrix(Matrix<T, Dynamic, Dynamic, RowMajor> kernel, size_t width, size_t height) {
+	size_t size = width*height;
+	SparseMatrix<T> convMatrix(size, size);
+
+	int nnzKernel = 0;
+
+	for(int i = 0; i < kernel.rows(); i++) {
+		for(int j = 0; j < kernel.cols(); j++) {
+			if(kernel(i, j) != 0.0f) {
+				nnzKernel++;
+			}	
+		}
+	}
+	
+	convMatrix.reserve(VectorXi::Constant(size, nnzKernel));
+
+	int rows = kernel.rows()/2;
+	int cols = kernel.cols()/2; 
+
+	for(int n = 0; n < size; n++) {
+		int col = n % width;
+		int row = n / width;
+
+		for(int i = -rows; i <= rows; i++) {
+			for(int j = -cols; j <= cols; j++) {
+				double value = kernel(i+rows, j+cols);
+				if(row + i < 0 || col + j < 0 || row + i >= height || col + j >= width || value == 0) continue;
+				
+				int pos = n + j + i*width;
+				
+				convMatrix.insert(n, pos) = value;
+			}
+		}
+	}
+
+	return convMatrix;
+}
+
 int main() {
 	// Load the image as an Eigen matrix with size m x n. Each entry in the matrix corresponds
 	// to a pixel on the screen and takes a value somewhere between 0 (black) and 255 (white).
@@ -57,47 +103,15 @@ int main() {
 	// vector multiplication between a matrix A1 having size mn x mn and the image vector.
 	// Report the number of non-zero entries in A1.
 
-	size_t A1_size = m*n;
-	SparseMatrix<double> A1(A1_size, A1_size);
+	Matrix<double, Dynamic, Dynamic, RowMajor> Hav1(3, 3);
 
-	A1.reserve(VectorXi::Constant(A1_size,9)); // The 3x3 filter requires 9 nnz entries for each column except for pixels at the borders that require less
+	Hav1 << 1, 1, 1,
+			1, 4, 1,
+			1, 1, 1;
 
-	for(int i = 0; i < A1_size; i++) {
-		int row = i / n;
-		int col = i % n;
-
-		bool firstCol = (col == 0);
-		bool lastCol  = (col == m-1);
-		bool firstRow = (row == 0);
-		bool lastRow  = (row == n-1);
-
-		A1.insert(i,i) = 4;
-		if(!firstCol) {
-			A1.insert(i, i-1) = 1;
-			if(!firstRow) {
-				A1.insert(i, i-1-n) = 1;
-			}
-			if(!lastRow) {
-				A1.insert(i, i-1+n) = 1;
-			}
-		}
-		if(!lastCol) {
-			A1.insert(i, i+1) = 1;
-			if(!firstRow) {
-				A1.insert(i, i+1-n) = 1;
-			}
-			if(!lastRow) {
-				A1.insert(i, i+1+n) = 1;
-			}
-		}
-		if(!firstRow) {
-			A1.insert(i, i-n) = 1;
-		}
-		if(!lastRow) {
-			A1.insert(i, i+n) = 1;
-		}
-	}
-	A1 /= 12;
+	Hav1 /= 12;
+	
+	auto A1 = createConvolutionMatrix<double>(Hav1, m, n);
 
 	std::cout << "Task 4: nnz(A1)=" << A1.nonZeros() << std::endl;
 	// Apply the previous smoothing filter to the noisy image by performing the matrix vector
@@ -117,34 +131,13 @@ int main() {
 	// vector multiplication by a matrix A2 having size mn x mn. Report the number of non-zero
 	// entries in A2. Is A2 symmetric?
 
-	size_t A2_size = m*n;
-	SparseMatrix<double> A2(A2_size, A2_size);
+	Matrix<double, Dynamic, Dynamic, RowMajor> Hsh1(3, 3);
 
-	A2.reserve(VectorXi::Constant(A2_size,5)); // The 3x3 filter requires 5 nnz entries for each column except for pixels at the borders that require less
-
-	for(int i = 0; i < A2_size; i++) {
-		int row = i / n;
-		int col = i % n;
-
-		bool firstCol = (col == 0);
-		bool lastCol  = (col == m-1);
-		bool firstRow = (row == 0);
-		bool lastRow  = (row == n-1);
-
-		A2.insert(i,i) = 9;
-		if(!firstCol) {
-			A2.insert(i, i-1) = -1;
-		}
-		if(!lastCol) {
-			A2.insert(i, i+1) = -3;
-		}
-		if(!firstRow) {
-			A2.insert(i, i-n) = -3;
-		}
-		if(!lastRow) {
-			A2.insert(i, i+n) = -1;
-		}
-	}
+	Hsh1 <<  0, -3,  0,
+			-1,  9, -3,
+			 0, -1,  0;
+			 
+	auto A2 = createConvolutionMatrix<double>(Hsh1, n, m);
 
 	std::cout << "Task 6: nnz(A2)=" << A2.nonZeros() << std::endl;
 	// Apply the previous sharpening filter to the original image by performing the matrix vector
@@ -173,39 +166,13 @@ int main() {
 	// Write the convolution operation corresponding to the detection kernel Hed2 as a matrix
 	// vector multiplication by a matrix A3 having size mn x mn. Is matrix A3 symmetric?
 
-	size_t A3_size = m*n;
-	SparseMatrix<double> A3(A3_size, A3_size);
+	Matrix<double, Dynamic, Dynamic, RowMajor> Hed2(3, 3);
 
-	A3.reserve(VectorXi::Constant(A2_size,6)); // The 3x3 filter requires 5 nnz entries for each column except for pixels at the borders that require less
-
-	for(int i = 0; i < A2_size; i++) {
-		int row = i / n;
-		int col = i % n;
-
-		bool firstCol = (col == 0);
-		bool lastCol  = (col == m-1);
-		bool firstRow = (row == 0);
-		bool lastRow  = (row == n-1);
-
-		if(!firstCol) {
-			A3.insert(i, i-1) = -2;
-			if(!firstRow) {
-				A3.insert(i, i-1-n) = -1;
-			}
-			if(!lastRow) {
-				A3.insert(i, i-1+n) = -1;
-			}
-		}
-		if(!lastCol) {
-			A3.insert(i, i+1) = 2;
-			if(!firstRow) {
-				A3.insert(i, i+1-n) = 1;
-			}
-			if(!lastRow) {
-				A3.insert(i, i+1+n) = 1;
-			}
-		}
-	}
+	Hed2 << -1, 0, 1,
+			-2, 0, 2,
+			-1, 0, 1;
+			 
+	auto A3 = createConvolutionMatrix<double>(Hed2, n, m);
 
 	std::cout << "Task 10: Matrix is not symmetric" << std::endl;
 	// Apply the previous edge detection filter to the original image by performing the matrix
