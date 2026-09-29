@@ -1,5 +1,6 @@
 #include <Eigen/Dense>
 #include <iostream>
+#include <cstdint>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -17,50 +18,37 @@ int main() {
 
 	// Load the image using stb_image
 	int m, n, channels;
-	// for greyscale images force to load only one channel
-	unsigned char* image_data = stbi_load(input_image_path, &m, &n, &channels, 1);
+	
+	uint8_t* image_data = stbi_load(input_image_path, &m, &n, &channels, 1);
 	if (!image_data) {
 		std::cerr << "Error: Could not load image " << input_image_path << std::endl;
 		return 1;
 	}
 
-	Matrix<unsigned char, Dynamic, Dynamic, RowMajor> original_image(n, m);
+	auto original_image = Map<Matrix<uint8_t, Dynamic, Dynamic, RowMajor>>(image_data, n, m);
 
-	// Fill the matrices with image data
-	for (int i = 0; i < m; ++i) {
-		for (int j = 0; j < n; ++j) {
-			int index = (i * m + j);
-			original_image(i, j) = image_data[index];
-		}
-	}
-
-	std::cout << "Image loaded: " << m << "x" << n << std::endl;
+	std::cout << "Task 1: Image loaded in Eigen::Matrix with size " << original_image.cols() << " x " << original_image.rows() << std::endl;
 
 	// Introduce a noise signal into the loaded image by adding random fluctuations of color
 	// ranging between [−50, 50] to each pixel. Export the resulting image in .png and upload it.
 
-	Matrix<double, Dynamic, Dynamic, RowMajor> noisy_image = (original_image.cast<double>() + (MatrixXd::Random(m, n) * 50)).cwiseMax(0.0).cwiseMin(255.0);
-	Matrix<unsigned char, Dynamic, Dynamic, RowMajor> saved_image = noisy_image.cast<unsigned char>();
+	Matrix<uint8_t, Dynamic, Dynamic, RowMajor> noisy_image = (original_image.cast<double>() + (MatrixXd::Random(m, n) * 50)).cwiseMax(0.0).cwiseMin(255.0).cast<uint8_t>();
 
-	const std::string output_image_path = "res/noisy.png";
-  	if (stbi_write_png(output_image_path.c_str(), m, n, 1, saved_image.data(), m) == 0) {
+	const char* output_image_path = "res/noisy.png";
+  	if (stbi_write_png(output_image_path, m, n, 1, noisy_image.data(), m) == 0) {
     	std::cerr << "Error: Could not save grayscale image" << std::endl;
+		return 1;
 	}
+
+	std::cout << "Task 2: Image saved to " << output_image_path << std::endl;
 
 	// Reshape the original and noisy images as vectors v and w, respectively. Verify that each
 	// vector has m n components. Report here the Euclidean norm of v.
 
-	VectorXd v = Map<const Matrix<unsigned char, Dynamic, 1>>(
-		original_image.data(), 
-		original_image.size()
-	).cast<double>();
+	auto v = Map<const Matrix<uint8_t, Dynamic, 1>>(original_image.data(), original_image.size()).cast<double>();
+	auto w = Map<const Matrix<uint8_t, Dynamic, 1>>(noisy_image.data()	 , noisy_image	 .size());
 
-	VectorXd w = Map<const Matrix<double, Dynamic, 1>>(
-		noisy_image.data(), 
-		noisy_image.size()
-	);
-
-	std::cout << "||v||=" << v.norm() << std::endl;
+	std::cout << "Task 3: Euclidean norm of v ||v||=" << v.norm() << std::endl;
 
 	// Write the convolution operation corresponding to the smoothing kernel Hav1 as a matrix
 	// vector multiplication between a matrix A1 having size mn x mn and the image vector.
