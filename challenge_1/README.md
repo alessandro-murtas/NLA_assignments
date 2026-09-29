@@ -13,7 +13,7 @@ greyscale image.
 
    **A**: [noisy.png](res/noisy.png)
    
-   <img src="res/noisy.png" alt="noisy image" width="200"/>
+   <img src="res/noisy.png" alt="noisy image" width="300"/>
 
 3. **Q**: Reshape the original and noisy images as vectors $v$ and $w$, respectively. Verify that each vector has m n components. Report here the Euclidean norm of $v$.
 
@@ -27,21 +27,23 @@ greyscale image.
 
    **A**: [smoothed_noisy.png](res/smoothed_noisy.png)
    
-   <img src="res/smoothed_noisy.png" alt="smoothed noisy image" width="200"/>
+   <img src="res/smoothed_noisy.png" alt="smoothed noisy image" width="300"/>
 
 6. **Q**: Write the convolution operation corresponding to the sharpening kernel $H_{sh1}$ as a matrix vector multiplication by a matrix $A_2$ having size $mn \times mn$. Report the number of non-zero entries in $A_2$. Is $A_2$ symmetric?
 
-   **A**: 
+   **A**: $\text{nnz}(A_1)=2149056$
 
 7. **Q**: Apply the previous sharpening filter to the original image by performing the matrix vector multiplication $A_2 v$. Export and upload the resulting image.
 
-   **A**: 
+   **A**: [sharpened_original.png](res/sharpened_original.png)
+   
+   <img src="res/sharpened_original.png" alt="sharpened original image" width="300"/>
 
 8. **Q**: Export the Eigen matrix $A_2$ and vector win the **.mtx** format. Using a suitable iterative solver and preconditioning technique available in the LIS library compute the approximate solution to the linear system $A_2 x = w$ prescribing a tolerance of $10^{−12}$. Report here the iteration count and the final residual.
 
    **A**: 
 
-9. **Q**: Convert the previous approximate solution vector xinto a **.png** image. Upload the resulting file here.
+9. **Q**: Convert the previous approximate solution vector $x$ into a **.png** image. Upload the resulting file here.
 
    **A**: 
 
@@ -51,7 +53,9 @@ greyscale image.
 
 11. **Q**: Apply the previous edge detection filter to the original image by performing the matrix vector multiplication $A_3 v$. Export and upload the resulting image.
 
-    **A**: 
+    **A**: [sobel_original.png](res/sobel_original.png)
+   
+   <img src="res/sobel_original.png" alt="sobel original image" width="300"/>
 
 12. **Q**: Using a suitable iterative solver available in the Eigen library compute the approximate solution of the linear system $(4I + A_3)y = w$, where $I$ denotes the identity matrix, prescribing a tolerance of $10^{−10}$. Report here the iteration count and the final residual.
 
