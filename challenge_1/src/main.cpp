@@ -49,7 +49,7 @@ int main() {
 	// vector has m n components. Report here the Euclidean norm of v.
 
 	auto v = Map<const Matrix<uint8_t, Dynamic, 1>>(original_image.data(), original_image.size()).cast<double>();
-	auto w = Map<const Matrix<double, Dynamic, 1>>(noisy_image.data()	 , noisy_image	 .size());
+	auto w = Map<const Matrix<double , Dynamic, 1>>(noisy_image.data()	 , noisy_image	 .size());
 
 	std::cout << "Task 3: Euclidean norm of v ||v||=" << v.norm() << std::endl;
 
@@ -117,28 +117,118 @@ int main() {
 	// vector multiplication by a matrix A2 having size mn x mn. Report the number of non-zero
 	// entries in A2. Is A2 symmetric?
 
+	size_t A2_size = m*n;
+	SparseMatrix<double> A2(A2_size, A2_size);
+
+	A2.reserve(VectorXi::Constant(A2_size,5)); // The 3x3 filter requires 5 nnz entries for each column except for pixels at the borders that require less
+
+	for(int i = 0; i < A2_size; i++) {
+		int row = i / n;
+		int col = i % n;
+
+		bool firstCol = (col == 0);
+		bool lastCol  = (col == m-1);
+		bool firstRow = (row == 0);
+		bool lastRow  = (row == n-1);
+
+		A2.insert(i,i) = 9;
+		if(!firstCol) {
+			A2.insert(i, i-1) = -1;
+		}
+		if(!lastCol) {
+			A2.insert(i, i+1) = -3;
+		}
+		if(!firstRow) {
+			A2.insert(i, i-n) = -3;
+		}
+		if(!lastRow) {
+			A2.insert(i, i+n) = -1;
+		}
+	}
+
+	std::cout << "Task 6: nnz(A2)=" << A2.nonZeros() << std::endl;
 	// Apply the previous sharpening filter to the original image by performing the matrix vector
 	// multiplication A2v. Export and upload the resulting image.
 
+	Vector<double, Dynamic> sharpened_original = (A2*v).cwiseMax(0.0).cwiseMin(255.0);
+	save_image = sharpened_original.cast<uint8_t>();
+
+	const char* sharpened_original_image_path = "res/sharpened_original.png";
+  	if (stbi_write_png(sharpened_original_image_path, m, n, 1, save_image.data(), m) == 0) {
+    	std::cerr << "Error: Could not save grayscale image" << std::endl;
+		return 1;
+	}
+	std::cout << "Task 7: Image saved to " << sharpened_original_image_path << std::endl;
+
 	// Export the Eigen matrix A2 and vector win the .mtx format. Using a suitable iterative
 	// solver and preconditioning technique available in the LIS library compute the approximate
-	// solution to the linear system A2x= wprescribing a tolerance of 10−12. Report here the
+	// solution to the linear system A2x=w prescribing a tolerance of 10−12. Report here the
 	// iteration count and the final residual.
 
-	// Convert the previous approximate solution vector xinto a .png image. Upload the resulting
+	std::cout << "Task 8: Iteration count, final result" << std::endl;
+	// Convert the previous approximate solution vector x into a .png image. Upload the resulting
 	// file here.
 
+	std::cout << "Task 9: Image saved to " << std::endl;
 	// Write the convolution operation corresponding to the detection kernel Hed2 as a matrix
-	// vector multiplication by a matrix A3 having size mn ×mn. Is matrix A3 symmetric?
+	// vector multiplication by a matrix A3 having size mn x mn. Is matrix A3 symmetric?
 
+	size_t A3_size = m*n;
+	SparseMatrix<double> A3(A3_size, A3_size);
+
+	A3.reserve(VectorXi::Constant(A2_size,6)); // The 3x3 filter requires 5 nnz entries for each column except for pixels at the borders that require less
+
+	for(int i = 0; i < A2_size; i++) {
+		int row = i / n;
+		int col = i % n;
+
+		bool firstCol = (col == 0);
+		bool lastCol  = (col == m-1);
+		bool firstRow = (row == 0);
+		bool lastRow  = (row == n-1);
+
+		if(!firstCol) {
+			A3.insert(i, i-1) = -2;
+			if(!firstRow) {
+				A3.insert(i, i-1-n) = -1;
+			}
+			if(!lastRow) {
+				A3.insert(i, i-1+n) = -1;
+			}
+		}
+		if(!lastCol) {
+			A3.insert(i, i+1) = 2;
+			if(!firstRow) {
+				A3.insert(i, i+1-n) = 1;
+			}
+			if(!lastRow) {
+				A3.insert(i, i+1+n) = 1;
+			}
+		}
+	}
+
+	std::cout << "Task 10: Matrix is not symmetric" << std::endl;
 	// Apply the previous edge detection filter to the original image by performing the matrix
 	// vector multiplication A3 v. Export and upload the resulting image.
+
+	Vector<double, Dynamic> sobel_original = (A3*v).cwiseMax(0.0).cwiseMin(255.0);
+	save_image = sobel_original.cast<uint8_t>();
+
+	const char* sobel_original_image_path = "res/sobel_original.png";
+  	if (stbi_write_png(sobel_original_image_path, m, n, 1, save_image.data(), m) == 0) {
+    	std::cerr << "Error: Could not save grayscale image" << std::endl;
+		return 1;
+	}
+	std::cout << "Task 11: Image saved to " << sobel_original_image_path << std::endl;
 
 	// Using a suitable iterative solver available in the Eigen library compute the approximate
 	// solution of the linear system (4I +A3)y= w, where I denotes the identity matrix, prescribing 
 	// a tolerance of 10−10. Report here the iteration count and the final residual.
 
+	std::cout << "Task 12: Iteration residual" << std::endl;
 	// Import the previous approximate solution vector yin Eigen and convert it into a .png
 	// image and upload it.
+
+	std::cout << "Task 13: Image saved to" << std::endl;
 	return 0;
 }
