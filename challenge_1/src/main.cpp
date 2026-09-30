@@ -57,6 +57,11 @@ SparseMatrix<T> createConvolutionMatrix(Matrix<T, Dynamic, Dynamic, RowMajor> ke
 	return convMatrix;
 }
 
+template<typename T>
+bool isSparseMatrixSymmetric(SparseMatrix<T> mat) {
+	return (SparseMatrix<T>(mat.transpose()) - mat).norm() == 0;
+}
+
 int main() {
 	// Load the image as an Eigen matrix with size m x n. Each entry in the matrix corresponds
 	// to a pixel on the screen and takes a value somewhere between 0 (black) and 255 (white).
@@ -140,6 +145,7 @@ int main() {
 	auto A2 = createConvolutionMatrix<double>(Hsh1, n, m);
 
 	std::cout << "Task 6: nnz(A2)=" << A2.nonZeros() << std::endl;
+	std::cout << "Task 6: A2 is " << (isSparseMatrixSymmetric(A2) ? "" : "not ") << "symmetric" << std::endl;
 	// Apply the previous sharpening filter to the original image by performing the matrix vector
 	// multiplication A2v. Export and upload the resulting image.
 
@@ -174,7 +180,7 @@ int main() {
 			 
 	auto A3 = createConvolutionMatrix<double>(Hed2, n, m);
 
-	std::cout << "Task 10: Matrix is not symmetric" << std::endl;
+	std::cout << "Task 10: A3 is " << (isSparseMatrixSymmetric(A3) ? "" : "not ") << "symmetric" << std::endl;
 	// Apply the previous edge detection filter to the original image by performing the matrix
 	// vector multiplication A3 v. Export and upload the resulting image.
 
