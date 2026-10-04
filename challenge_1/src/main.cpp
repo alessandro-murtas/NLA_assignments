@@ -1,5 +1,6 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include <Eigen/IterativeLinearSolvers>
 
 #include <iostream>
 #include <cstdint>
@@ -85,7 +86,7 @@ int main() {
 	// Introduce a noise signal into the loaded image by adding random fluctuations of color
 	// ranging between [−50, 50] to each pixel. Export the resulting image in .png and upload it.
 
-	Matrix<double, Dynamic, Dynamic, RowMajor> noisy_image = (original_image.cast<double>() + (MatrixXd::Random(m, n) * 50)).cwiseMax(0.0).cwiseMin(255.0);
+	Matrix<double, Dynamic, Dynamic, RowMajor> noisy_image = (original_image.cast<double>() + (MatrixXd::Random(n, m) * 50)).cwiseMax(0.0).cwiseMin(255.0);
 	Matrix<uint8_t, Dynamic, Dynamic, RowMajor> save_noisy_image = noisy_image.cast<uint8_t>();
 
 	const char* output_image_path = "res/noisy.png";
@@ -198,10 +199,35 @@ int main() {
 	// solution of the linear system (4I +A3)y= w, where I denotes the identity matrix, prescribing 
 	// a tolerance of 10−10. Report here the iteration count and the final residual.
 
-	std::cout << "Task 12: Iteration residual" << std::endl;
+	SparseMatrix<double> I(A3.rows(), A3.cols());
+	I.setIdentity();
+
+	SparseMatrix<double> system_matrix = 4.0*I + A3;
+
+	BiCGSTAB<SparseMatrix<double>> solver;
+	solver.setTolerance(1.e-10);
+	solver.setMaxIterations(1000);
+
+	solver.compute(system_matrix);
+
+	VectorXd y = solver.solve(w);
+
+	std::cout << "Task 12: Iterations = " << solver.iterations()
+			  << ", final residual = " << solver.error() << std::endl;
+
 	// Import the previous approximate solution vector yin Eigen and convert it into a .png
 	// image and upload it.
 
-	std::cout << "Task 13: Image saved to" << std::endl;
-	return 0;
+	Vector<double, Dynamic> y_image = y.cwiseMax(0.0).cwiseMin(255.0);
+	save_image = y_image.cast<uint8_t>();
+
+	const char* solution_image_path = "res/solution_y.png";
+
+	if (stbi_write_png(solution_image_path, m, n, 1, save_image.data(), m) == 0) {
+		std::cerr << "Error: Could not save grayscale image" << std::endl;
+		return 1;
+	}
+
+	std::cout << "Task 13: Image saved to " << solution_image_path << std::endl;
+
 }
