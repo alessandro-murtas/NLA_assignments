@@ -215,7 +215,7 @@ int main() {
 	std::cout << "Task 12: Iterations = " << solver.iterations()
 			  << ", final residual = " << solver.error() << std::endl;
 
-	// Import the previous approximate solution vector yin Eigen and convert it into a .png
+	// Import the previous approximate solution vector y in Eigen and convert it into a .png
 	// image and upload it.
 
 	Vector<double, Dynamic> y_image = y.cwiseMax(0.0).cwiseMin(255.0);

@@ -59,8 +59,10 @@ greyscale image.
 
 12. **Q**: Using a suitable iterative solver available in the Eigen library compute the approximate solution of the linear system $(4I + A_3)y = w$, where $I$ denotes the identity matrix, prescribing a tolerance of $10^{−10}$. Report here the iteration count and the final residual.
 
-    **A**: 
+    **A**: Iterations = 50, final residual = 7.24763e-11
 
 13. **Q**: Import the previous approximate solution vector $y$ in Eigen and convert it into a **.png** image and upload it.
 
-    **A**: 
+    **A**: [solution_y.png](res/solution_y.png)
+   
+    <img src="res/solution_y.png" alt="y solution" width="300"/>
