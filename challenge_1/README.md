@@ -31,7 +31,7 @@ greyscale image.
 
 6. **Q**: Write the convolution operation corresponding to the sharpening kernel $H_{sh1}$ as a matrix vector multiplication by a matrix $A_2$ having size $mn \times mn$. Report the number of non-zero entries in $A_2$. Is $A_2$ symmetric?
 
-   **A**: $\text{nnz}(A_1)=2149056$
+   **A**: $\text{nnz}(A_2)=2149056$, $A_2$ is **not** symmetric
 
 7. **Q**: Apply the previous sharpening filter to the original image by performing the matrix vector multiplication $A_2 v$. Export and upload the resulting image.
 
@@ -49,13 +49,13 @@ greyscale image.
 
 10. **Q**: Write the convolution operation corresponding to the detection kernel $H_{ed2}$ as a matrix vector multiplication by a matrix $A_3$ having size $mn \times mn$. Is matrix $A_3$ symmetric?
 
-    **A**: 
+    **A**: $A_3$ is **not** symmetric
 
 11. **Q**: Apply the previous edge detection filter to the original image by performing the matrix vector multiplication $A_3 v$. Export and upload the resulting image.
 
     **A**: [sobel_original.png](res/sobel_original.png)
    
-   <img src="res/sobel_original.png" alt="sobel original image" width="300"/>
+    <img src="res/sobel_original.png" alt="sobel original image" width="300"/>
 
 12. **Q**: Using a suitable iterative solver available in the Eigen library compute the approximate solution of the linear system $(4I + A_3)y = w$, where $I$ denotes the identity matrix, prescribing a tolerance of $10^{−10}$. Report here the iteration count and the final residual.
 
