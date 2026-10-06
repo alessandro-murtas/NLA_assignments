@@ -225,11 +225,7 @@ int main() {
 
 	inX.close();
 
-	// if(!loadMarketVector(x, "res/x.mtx")) {
-	// 	std::cerr << "Failed opeining res/x.mtx" << std::endl;
-	// 	return 1;
-	// }
-	// std::cout << x.rows() << "x" << x.cols() << std::endl;
+	x = x.cwiseMax(0.0).cwiseMin(255.0);
 	save_image = x.cast<uint8_t>();
 
 	const char* x_solution_image_path = "res/solution_x.png";
