@@ -23,21 +23,23 @@ using namespace Eigen;
 template<typename T>
 SparseMatrix<T> createConvolutionMatrix(Matrix<T, Dynamic, Dynamic, RowMajor> kernel, size_t width, size_t height) {
 	size_t size = width*height;
-	SparseMatrix<T> convMatrix(size, size);
+	SparseMatrix<T> convMatrix(size, size); //mn x mn
 
 	int nnzKernel = 0;
 
+	//Counting non-null kernel pixels
 	for(int i = 0; i < kernel.rows(); i++) {
 		for(int j = 0; j < kernel.cols(); j++) {
 			if(kernel(i, j) != 0.0f) {
-				nnzKernel++;
+				nnzKernel++; //we count the number of non-zero elements in the kernel
+				//we know on how many elements the pixel will depend
 			}	
 		}
 	}
 	
-	convMatrix.reserve(VectorXi::Constant(size, nnzKernel));
+	convMatrix.reserve(VectorXi::Constant(size, nnzKernel)); //Prepares memory
 
-	int rows = kernel.rows()/2;
+	int rows = kernel.rows()/2; 
 	int cols = kernel.cols()/2; 
 
 	for(int n = 0; n < size; n++) {
@@ -59,9 +61,10 @@ SparseMatrix<T> createConvolutionMatrix(Matrix<T, Dynamic, Dynamic, RowMajor> ke
 	return convMatrix;
 }
 
-template<typename T>
+template<typename T> // generic numeric type T for elements of the matrix
 bool isSparseMatrixSymmetric(SparseMatrix<T> mat) {
-	return (SparseMatrix<T>(mat.transpose()) - mat).norm() == 0;
+	return (SparseMatrix<T>(mat.transpose()) - mat).norm() == 0; 
+	//norma fra mat e la trasposta
 }
 
 int main() {
@@ -93,6 +96,7 @@ int main() {
 	const char* output_image_path = "res/noisy.png";
   	if (stbi_write_png(output_image_path, m, n, 1, save_noisy_image.data(), m) == 0) {
     	std::cerr << "Error: Could not save grayscale image" << std::endl;
+		stbi_image_free(image_data);
 		return 1;
 	}
 
@@ -104,7 +108,12 @@ int main() {
 	auto v = Map<const Matrix<uint8_t, Dynamic, 1>>(original_image.data(), original_image.size()).cast<double>();
 	auto w = Map<const Matrix<double , Dynamic, 1>>(noisy_image.data()	 , noisy_image	 .size());
 
-	std::cout << "Task 3: Euclidean norm of v ||v||=" << v.norm() << std::endl;
+	std::cout << "Task 3: v.size() = " << v.size()
+          << ", w.size() = " << w.size()
+          << ", m*n = " << m*n << std::endl;
+
+	std::cout << "Task 3: Euclidean norm of v ||v|| = "
+          << v.norm() << std::endl;
 
 	// Write the convolution operation corresponding to the smoothing kernel Hav1 as a matrix
 	// vector multiplication between a matrix A1 having size mn x mn and the image vector.
@@ -130,7 +139,11 @@ int main() {
 	const char* smoothed_noisy_image_path = "res/smoothed_noisy.png";
   	if (stbi_write_png(smoothed_noisy_image_path, m, n, 1, save_image.data(), m) == 0) {
     	std::cerr << "Error: Could not save grayscale image" << std::endl;
+		stbi_image_free(image_data);
 		return 1;
+		//NB: the last parametere m indices how many bytes per row, 
+		//since we have single channel and uint8_t, we have 1 byte per pixel, so m bytes per row
+
 	}
 	std::cout << "Task 5: Image saved to " << smoothed_noisy_image_path << std::endl;
 
@@ -144,7 +157,7 @@ int main() {
 			-1,  9, -3,
 			 0, -1,  0;
 			 
-	auto A2 = createConvolutionMatrix<double>(Hsh1, n, m);
+	auto A2 = createConvolutionMatrix<double>(Hsh1, m, n); //we create conv matrix for Hsh1
 
 	std::cout << "Task 6: nnz(A2)=" << A2.nonZeros() << std::endl;
 	std::cout << "Task 6: A2 is " << (isSparseMatrixSymmetric(A2) ? "" : "not ") << "symmetric" << std::endl;
@@ -152,11 +165,12 @@ int main() {
 	// multiplication A2v. Export and upload the resulting image.
 
 	VectorXd sharpened_original = (A2*v).cwiseMax(0.0).cwiseMin(255.0);
-	save_image = sharpened_original.cast<uint8_t>();
+	save_image = sharpened_original.cast<uint8_t>(); //cast because we want only integers
 
 	const char* sharpened_original_image_path = "res/sharpened_original.png";
   	if (stbi_write_png(sharpened_original_image_path, m, n, 1, save_image.data(), m) == 0) {
     	std::cerr << "Error: Could not save grayscale image" << std::endl;
+		stbi_image_free(image_data);
 		return 1;
 	}
 	std::cout << "Task 7: Image saved to " << sharpened_original_image_path << std::endl;
@@ -234,7 +248,7 @@ int main() {
 			-2, 0, 2,
 			-1, 0, 1;
 			 
-	auto A3 = createConvolutionMatrix<double>(Hed2, n, m);
+	auto A3 = createConvolutionMatrix<double>(Hed2, m, n);
 
 	std::cout << "Task 10: A3 is " << (isSparseMatrixSymmetric(A3) ? "" : "not ") << "symmetric" << std::endl;
 	// Apply the previous edge detection filter to the original image by performing the matrix
@@ -246,6 +260,7 @@ int main() {
 	const char* sobel_original_image_path = "res/sobel_original.png";
   	if (stbi_write_png(sobel_original_image_path, m, n, 1, save_image.data(), m) == 0) {
     	std::cerr << "Error: Could not save grayscale image" << std::endl;
+		stbi_image_free(image_data);
 		return 1;
 	}
 	std::cout << "Task 11: Image saved to " << sobel_original_image_path << std::endl;
@@ -266,11 +281,18 @@ int main() {
 	solver.compute(system_matrix);
 
 	VectorXd y = solver.solve(w);
+	if (solver.info() != Eigen::Success) {
+		std::cerr << "Error: Solver did not converge" << std::endl;
+		stbi_image_free(image_data);
+		return 1;
+	}
+
+	double relative_residual = (system_matrix*y - w).norm() / w.norm();
 
 	std::cout << "Task 12: Iterations = " << solver.iterations()
-			  << ", final residual = " << solver.error() << std::endl;
+			  << ", final residual = " << relative_residual << std::endl;
 
-	// Import the previous approximate solution vector y in Eigen and convert it into a .png
+	// Import the previous approximate solution vector yin Eigen and convert it into a .png
 	// image and upload it.
 
 	VectorXd y_image = y.cwiseMax(0.0).cwiseMin(255.0);
@@ -280,9 +302,10 @@ int main() {
 
 	if (stbi_write_png(solution_image_path, m, n, 1, save_image.data(), m) == 0) {
 		std::cerr << "Error: Could not save grayscale image" << std::endl;
+		stbi_image_free(image_data);
 		return 1;
 	}
 
 	std::cout << "Task 13: Image saved to " << solution_image_path << std::endl;
-
+	stbi_image_free(image_data);
 }
