@@ -1,8 +1,10 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <Eigen/IterativeLinearSolvers>
+#include <unsupported/Eigen/SparseExtra>
 
 #include <iostream>
+#include <fstream>
 #include <cstdint>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -12,13 +14,12 @@
 
 using namespace Eigen;
 
-// Funzione per convertire filtro lxl in sparse matrix per applicarlo a moltiplicazione vettore-matrice di dimensione mn x mn
-// Input:
-// - matrice filtro
-// - larghezza
-// - altezza
-// Output:
-// - matrice sparsa
+// Hav1 << 1,1,1,1,4,1,1,1,1; Hav1 /= 12;
+// Hav2 << 0,1,2,1,0,1,4,8,4,1,2,8,16,8,2,1,4,8,4,1,0,1,2,1,0; Hav2 /= 80;
+// Hsh1 << 0,-3,0,-1,9,-3,0,-1,0;
+// Hed1 << 0,-1,0,-1,4,-1,0,-1,0;
+// Hed2 << -1,0,1,-2,0,2,-1,0,1;
+
 template<typename T>
 SparseMatrix<T> createConvolutionMatrix(Matrix<T, Dynamic, Dynamic, RowMajor> kernel, size_t width, size_t height) {
 	size_t size = width*height;
@@ -123,8 +124,8 @@ int main() {
 	// Apply the previous smoothing filter to the noisy image by performing the matrix vector
 	// multiplication A1w. Export and upload the resulting image.
 
-	Vector<double, Dynamic> smoothed_noisy = A1*w;
-	Vector<uint8_t, Dynamic> save_image = smoothed_noisy.cast<uint8_t>();
+	VectorXd smoothed_noisy = A1*w;
+	Matrix<uint8_t, Dynamic, Dynamic, RowMajor> save_image = smoothed_noisy.cast<uint8_t>();
 
 	const char* smoothed_noisy_image_path = "res/smoothed_noisy.png";
   	if (stbi_write_png(smoothed_noisy_image_path, m, n, 1, save_image.data(), m) == 0) {
@@ -150,7 +151,7 @@ int main() {
 	// Apply the previous sharpening filter to the original image by performing the matrix vector
 	// multiplication A2v. Export and upload the resulting image.
 
-	Vector<double, Dynamic> sharpened_original = (A2*v).cwiseMax(0.0).cwiseMin(255.0);
+	VectorXd sharpened_original = (A2*v).cwiseMax(0.0).cwiseMin(255.0);
 	save_image = sharpened_original.cast<uint8_t>();
 
 	const char* sharpened_original_image_path = "res/sharpened_original.png";
@@ -160,16 +161,70 @@ int main() {
 	}
 	std::cout << "Task 7: Image saved to " << sharpened_original_image_path << std::endl;
 
-	// Export the Eigen matrix A2 and vector win the .mtx format. Using a suitable iterative
+	// Export the Eigen matrix A2 and vector w in the .mtx format. Using a suitable iterative
 	// solver and preconditioning technique available in the LIS library compute the approximate
 	// solution to the linear system A2x=w prescribing a tolerance of 10−12. Report here the
 	// iteration count and the final residual.
+	saveMarket(A2, "res/A2.mtx");
+	// saveMarketVectorDense(w, "res/w.mtx");
 
-	std::cout << "Task 8: Iteration count, final result" << std::endl;
+	std::ofstream outW;
+	outW.open("res/w.mtx");
+
+	outW << "%%MatrixMarket vector coordinate real general\n";
+    outW << w.rows() << "\n";
+
+    for (int i=0; i < w.rows(); i++) {
+		outW << i + 1 << " " << w(i) << "\n";
+    }
+	outW.close();
+
+	std::string command = "./test1 A2.mtx w.mtx x.mtx hist.txt -tol 1.0e-12 -i bicgstab -p iluc";
+
+	std::cout << std::endl << command << std::endl;
+	int result = system(("cd res && " + command).c_str());
+
+	if (result) {
+		std::cout << "Failed command execution" << std::endl;
+		return 1;
+	}
+
+	// std::cout << "Task 8: Iterations = 8, final residual = 8.151045e-14" << std::endl;
 	// Convert the previous approximate solution vector x into a .png image. Upload the resulting
 	// file here.
+	std::ifstream inX;
+	inX.open("res/x.mtx");
 
-	std::cout << "Task 9: Image saved to " << std::endl;
+	std::string str;
+	std::getline(inX, str);
+	std::getline(inX, str);
+	int vecSize = atoi(str.c_str());
+
+	VectorXd x = VectorXd::Constant(vecSize, 0);
+	int i = 0;
+    while (std::getline(inX, str)) {
+		std::istringstream s(str);
+
+		s >> i;
+		s >> x(i-1);
+	}
+
+	inX.close();
+
+	// if(!loadMarketVector(x, "res/x.mtx")) {
+	// 	std::cerr << "Failed opeining res/x.mtx" << std::endl;
+	// 	return 1;
+	// }
+	// std::cout << x.rows() << "x" << x.cols() << std::endl;
+	save_image = x.cast<uint8_t>();
+
+	const char* x_solution_image_path = "res/solution_x.png";
+  	if (stbi_write_png(x_solution_image_path, m, n, 1, save_image.data(), m) == 0) {
+    	std::cerr << "Error: Could not save grayscale image" << std::endl;
+		return 1;
+	}
+	std::cout << "Task 9: Image saved to " << x_solution_image_path << std::endl;
+
 	// Write the convolution operation corresponding to the detection kernel Hed2 as a matrix
 	// vector multiplication by a matrix A3 having size mn x mn. Is matrix A3 symmetric?
 
@@ -185,7 +240,7 @@ int main() {
 	// Apply the previous edge detection filter to the original image by performing the matrix
 	// vector multiplication A3 v. Export and upload the resulting image.
 
-	Vector<double, Dynamic> sobel_original = (A3*v).cwiseMax(0.0).cwiseMin(255.0);
+	VectorXd sobel_original = (A3*v).cwiseMax(0.0).cwiseMin(255.0);
 	save_image = sobel_original.cast<uint8_t>();
 
 	const char* sobel_original_image_path = "res/sobel_original.png";
@@ -218,7 +273,7 @@ int main() {
 	// Import the previous approximate solution vector y in Eigen and convert it into a .png
 	// image and upload it.
 
-	Vector<double, Dynamic> y_image = y.cwiseMax(0.0).cwiseMin(255.0);
+	VectorXd y_image = y.cwiseMax(0.0).cwiseMin(255.0);
 	save_image = y_image.cast<uint8_t>();
 
 	const char* solution_image_path = "res/solution_y.png";

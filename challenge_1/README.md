@@ -41,11 +41,13 @@ greyscale image.
 
 8. **Q**: Export the Eigen matrix $A_2$ and vector win the **.mtx** format. Using a suitable iterative solver and preconditioning technique available in the LIS library compute the approximate solution to the linear system $A_2 x = w$ prescribing a tolerance of $10^{−12}$. Report here the iteration count and the final residual.
 
-   **A**: 
+   **A**: 8 iterations, relative residual=$2.116165e-13$ (BiCGSTAB with ILUC preconditioner)
 
 9. **Q**: Convert the previous approximate solution vector $x$ into a **.png** image. Upload the resulting file here.
 
-   **A**: 
+   **A**: [solution_x.png](res/solution_x.png)
+   
+    <img src="res/solution_x.png" alt="solution x" width="300"/>
 
 10. **Q**: Write the convolution operation corresponding to the detection kernel $H_{ed2}$ as a matrix vector multiplication by a matrix $A_3$ having size $mn \times mn$. Is matrix $A_3$ symmetric?
 
@@ -65,4 +67,4 @@ greyscale image.
 
     **A**: [solution_y.png](res/solution_y.png)
    
-    <img src="res/solution_y.png" alt="y solution" width="300"/>
+    <img src="res/solution_y.png" alt="solution y" width="300"/>

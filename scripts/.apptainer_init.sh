@@ -1,4 +1,3 @@
 source /u/sw/etc/bash.bashrc
 
-module load gcc-glibc
-module load eigen
+module load gcc-glibc eigen lis
