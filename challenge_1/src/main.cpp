@@ -246,6 +246,7 @@ int main() {
 			 
 	auto A3 = createConvolutionMatrix<double>(Hed2, m, n);
 
+	std::cout << "Task 10: nnz(A3)=" << A3.nonZeros() << std::endl;
 	std::cout << "Task 10: A3 is " << (isSparseMatrixSymmetric(A3) ? "" : "not ") << "symmetric" << std::endl;
 	// Apply the previous edge detection filter to the original image by performing the matrix
 	// vector multiplication A3 v. Export and upload the resulting image.
