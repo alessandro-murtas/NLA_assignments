@@ -2,7 +2,10 @@
 **Goal**: Apply image filters and find the approximate solution of linear system to process a
 greyscale image.
 
-**Data**: Download the file deer.jpg from webeep and move it to your working directory.
+**Data**: Download the file [deer.jpg](res/deer.jpg) from webeep and move it to your working directory.
+
+
+<center><img src="res/deer.jpg" alt="deer" width="250"/></center>
 
 **Tasks**:
 1. **Q**: Load the image as an Eigen matrix with size $m \times n$. Each entry in the matrix corresponds to a pixel on the screen and takes a value somewhere between 0 (black) and 255 (white). Report the size of the matrix.
@@ -47,7 +50,7 @@ greyscale image.
 
    **A**: [solution_x.png](res/solution_x.png)
    
-    <img src="res/solution_x.png" alt="solution x" width="300"/>
+   <img src="res/solution_x.png" alt="solution x" width="300"/>
 
 10. **Q**: Write the convolution operation corresponding to the detection kernel $H_{ed2}$ as a matrix vector multiplication by a matrix $A_3$ having size $mn \times mn$. Is matrix $A_3$ symmetric?
 
