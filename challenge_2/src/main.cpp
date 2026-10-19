@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdint>
+#include <algorithm>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -13,6 +14,22 @@
 #include "stb_image_write.h"
 
 using namespace Eigen;
+
+template <typename M>
+void truncatedSVD(const BDCSVD<M>& svd, int k, M& C, M& D) {
+    C = svd.matrixU().leftCols(k);
+    D = svd.matrixV().leftCols(k);
+
+    for(int i = 0; i < k; i++) {
+        D.col(i) *= svd.singularValues()(i);
+    }
+}
+
+bool saveMatrixToImage(const MatrixXd mat, const std::string& path) {
+    Matrix<uint8_t, Dynamic, Dynamic, RowMajor> save_image = (mat*255).cwiseMax(0.0).cwiseMin(255.0).cast<uint8_t>();
+
+  	return stbi_write_png(path.c_str(), mat.cols(), mat.rows(), 1, save_image.data(), mat.cols());
+}
 
 std::vector<double> nBiggestEigenvaluesSymmetricMatrix(MatrixXd m, unsigned n) {
     SelfAdjointEigenSolver<MatrixXd> eigensolver(m);
@@ -63,7 +80,9 @@ int main(int argc, char *argv[]) {
     // TASK 2
     auto nBiggestEigenvalues = nBiggestEigenvaluesSymmetricMatrix(matrix_ata, 2);
     
-    std::cout << "The 2 biggest eigenvalues of A are: " << sqrt(nBiggestEigenvalues[0]) << ", " << sqrt(nBiggestEigenvalues[1]) << std::endl;
+    std::cout << "The 2 biggest eigenvalues of A are: ";
+    std::for_each(nBiggestEigenvalues.begin(), nBiggestEigenvalues.end(), [](double singular) { std::cout << sqrt(singular) << ", "; });
+    std::cout << std::endl;
 
     // TASK 3
     saveMarket(matrix_ata, "res/ATA.mtx");
@@ -81,7 +100,7 @@ int main(int argc, char *argv[]) {
     // TASK 4
     command = "./eigen1 ATA.mtx eigvec.txt hist.txt -e pi -etol 1.0e-10 -shift 867.85";
 
-	std::cout << std::endl << command << std::endl;
+	std::cout << command << std::endl;
 	result = system(("cd res && " + command).c_str());
 
 	if (result) {
@@ -97,44 +116,20 @@ int main(int argc, char *argv[]) {
     std::cout << "Task 5: ||Σ|| = " << sigma.norm() << std::endl;
 
     // TASK 6
-    MatrixXd C30 = svd.matrixU().leftCols(30);
-    MatrixXd C90 = svd.matrixU().leftCols(90);
+    MatrixXd C30, D30;
+    MatrixXd C90, D90;
 
-    MatrixXd D30 = svd.matrixV().leftCols(30); // *sigma.topRows(30);
-    MatrixXd D90 = svd.matrixV().leftCols(90); //*sigma.topRows(90);
-
-    for(int i = 0; i < 30; i++) {
-        D30.col(i) *= sigma(i,i);
-    }
-
-
-    for(int i = 0; i < 90; i++) {
-        D90.col(i) *= sigma(i,i);
-    }
+    truncatedSVD<MatrixXd>(svd, 30, C30, D30);
+    truncatedSVD<MatrixXd>(svd, 90, C90, D90);
 
     // TASK 6
     MatrixXd A30 = C30*D30.transpose();
+    std::string output_path = "res/A30.png";
+    saveMatrixToImage(A30, output_path);
+	std::cout << "Task 6: Image saved to " << output_path << std::endl;
+    
     MatrixXd A90 = C90*D90.transpose();
-
-    Matrix<uint8_t, Dynamic, Dynamic, RowMajor> save_image = (A30*255).cwiseMax(0.0).cwiseMin(255.0).cast<uint8_t>();
-    const char* smoothed_noisy_image_path = "res/A30.png";
-  	if (stbi_write_png(smoothed_noisy_image_path, width, height, 1, save_image.data(), width) == 0) {
-    	std::cerr << "Error: Could not save grayscale image" << std::endl;
-		stbi_image_free(image_data);
-		return 1;
-		//NB: the last parametere m indices how many bytes per row, 
-		//since we have single channel and uint8_t, we have 1 byte per pixel, so m bytes per row
-
-	}
-	std::cout << "Task 6: Image saved to " << smoothed_noisy_image_path << std::endl;
-    const char* smoothed_noisy_image_path90 = "res/A90.png";
-    save_image = (A90*255).cwiseMax(0.0).cwiseMin(255.0).cast<uint8_t>();
-  	if (stbi_write_png(smoothed_noisy_image_path90, width, height, 1, save_image.data(), width) == 0) {
-    	std::cerr << "Error: Could not save grayscale image" << std::endl;
-		stbi_image_free(image_data);
-		return 1;
-		//NB: the last parametere m indices how many bytes per row, 
-		//since we have single channel and uint8_t, we have 1 byte per pixel, so m bytes per row
-	}
-	std::cout << "Task 6: Image saved to " << smoothed_noisy_image_path90 << std::endl;
+    output_path = "res/A90.png";
+    saveMatrixToImage(A90, output_path);
+	std::cout << "Task 6: Image saved to " << output_path << std::endl;
 }
