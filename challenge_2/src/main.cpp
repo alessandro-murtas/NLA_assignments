@@ -122,7 +122,12 @@ int main(int argc, char *argv[]) {
     truncatedSVD<MatrixXd>(svd, 30, C30, D30);
     truncatedSVD<MatrixXd>(svd, 90, C90, D90);
 
-    // TASK 6
+    std::cout << "C30 nnz: " << C30.nonZeros() << std::endl;
+    std::cout << "D30 nnz: " << D30.nonZeros() << std::endl;
+    std::cout << "C90 nnz: " << C90.nonZeros() << std::endl;
+    std::cout << "D90 nnz: " << D90.nonZeros() << std::endl;
+
+    // TASK 7
     MatrixXd A30 = C30*D30.transpose();
     std::string output_path = "res/A30.png";
     saveMatrixToImage(A30, output_path);
@@ -132,4 +137,95 @@ int main(int argc, char *argv[]) {
     output_path = "res/A90.png";
     saveMatrixToImage(A90, output_path);
 	std::cout << "Task 6: Image saved to " << output_path << std::endl;
+
+    // TASK 8
+    int n = 400;
+    MatrixXd checkerboard(n,n);
+
+    for(int i = 0; i < n; i++) {
+        for(int j = 0; j < n; j++) {
+            if((i/40 + j/40) % 2 == 0) {
+                checkerboard(i,j) = 0.0;
+            }
+            else {
+                checkerboard(i,j) = 255.0;
+            }
+        }
+    }
+
+    std::cout << "Task 8: Norm = "
+              << checkerboard.norm() << std::endl;
+
+    // TASK 9
+    MatrixXd noise = 60.0 * MatrixXd::Random(n,n);
+    MatrixXd noisy = checkerboard + noise;
+
+    Matrix<uint8_t, Dynamic, Dynamic, RowMajor> save_image = noisy.cwiseMax(0.0).cwiseMin(255.0).cast<uint8_t>();
+
+    if (stbi_write_png("res/checknoisy.png", n, n, 1,
+                    save_image.data(), n) == 0) {
+        std::cerr << "Error saving noisy image" << std::endl;
+        return 1;
+    }
+
+    // TASK 10
+    Eigen::BDCSVD<Eigen::MatrixXd> svdNoisy(
+        noisy, Eigen::ComputeThinU | Eigen::ComputeThinV);
+
+    VectorXd sigmaNoisy = svdNoisy.singularValues();
+
+    std::cout << "Task 10: First singular value = "
+              << sigmaNoisy(0) << std::endl;
+
+    std::cout << "Task 10: Second singular value = "
+              << sigmaNoisy(1) << std::endl;
+
+    // TASK 11
+    MatrixXd C6 = svdNoisy.matrixU().leftCols(6);
+    MatrixXd C12 = svdNoisy.matrixU().leftCols(12);
+
+    MatrixXd D6 = svdNoisy.matrixV().leftCols(6);
+    MatrixXd D12 = svdNoisy.matrixV().leftCols(12);
+
+    for(int i = 0; i < 6; i++) {
+        D6.col(i) *= sigmaNoisy(i);
+    }
+
+    for(int i = 0; i < 12; i++) {
+        D12.col(i) *= sigmaNoisy(i);
+    }
+
+    std::cout << "Task 11: C6 size = "
+              << C6.rows() << " x " << C6.cols() << std::endl;
+
+    std::cout << "Task 11: D6 size = "
+              << D6.rows() << " x " << D6.cols() << std::endl;
+
+    std::cout << "Task 11: C12 size = "
+              << C12.rows() << " x " << C12.cols() << std::endl;
+
+    std::cout << "Task 11: D12 size = "
+              << D12.rows() << " x " << D12.cols() << std::endl;
+
+    // TASK 12
+    MatrixXd A6 = C6 * D6.transpose();
+    MatrixXd A12 = C12 * D12.transpose();
+
+    save_image = A6.cwiseMax(0.0).cwiseMin(255.0).cast<uint8_t>();
+
+    if(stbi_write_png("res/check6.png", n, n, 1,
+                      save_image.data(), n) == 0) {
+        std::cerr << "Error saving A6" << std::endl;
+        return 1;
+    }
+
+    save_image = A12.cwiseMax(0.0).cwiseMin(255.0).cast<uint8_t>();
+
+    if(stbi_write_png("res/check12.png", n, n, 1,
+                      save_image.data(), n) == 0) {
+        std::cerr << "Error saving A12" << std::endl;
+        return 1;
+    }
+
+    return 0;
 }
