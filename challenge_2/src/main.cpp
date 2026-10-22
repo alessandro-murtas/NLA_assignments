@@ -80,9 +80,7 @@ int main(int argc, char *argv[]) {
     // TASK 2
     auto nBiggestEigenvalues = nBiggestEigenvaluesSymmetricMatrix(matrix_ata, 2);
     
-    std::cout << "The 2 biggest eigenvalues of A are: ";
-    std::for_each(nBiggestEigenvalues.begin(), nBiggestEigenvalues.end(), [](double singular) { std::cout << sqrt(singular) << ", "; });
-    std::cout << std::endl;
+    std::cout << "Task 2: The 2 biggest eigenvalues of A are: " << sqrt(nBiggestEigenvalues[0]) << ", " << sqrt(nBiggestEigenvalues[1]) << std::endl;
 
     // TASK 3
     saveMarket(matrix_ata, "res/ATA.mtx");
