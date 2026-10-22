@@ -8,7 +8,7 @@
 **Tasks**:
 1. **Q**: Load the image as an Eigen matrix A with size $m\times n$. Each entry in the matrix corresponds to a pixel on the screen and takes a value somewhere between $0$ (black) and $255$ (white). Compute the matrix product $A^TA$ and report the euclidean norm of $A^TA$.
 
-   **A**: $\| A^TA \|=18615.9$
+   **A**: $\| A^TA \|_2=18615.9$
 
 2. **Q**: Solve the eigenvalue problem $A^T Ax = \lambda x$ using the proper solver provided by the Eigen library. Report the two largest computed singular values of $A$.
 
@@ -24,7 +24,7 @@
 
 5. **Q**: Using the SVD module of the Eigen library, perform a singular value decomposition of the matrix $A$. Report the Euclidean norm of the diagonal matrix $\Sigma$ of the singular values.
 
-   **A**: $\| \Sigma \|=162.413$
+   **A**: $\| \Sigma \|_2=162.413$
 
 6. **Q**: Compute the matrices $C$ and $D$ described in (1) (look at PDF) assuming $k = 30$ and $k = 90$. Report the number of nonzero entries in the matrices $C$ and $D$.
 
@@ -41,7 +41,7 @@
 
    <center><img src="res/checkboard.png" alt="checkboard" width="200"/></center>
 
-   **A**: $\|M\|=282.843$
+   **A**: $\|M\|_2=282.843$
 
 9. **Q**: Introduce a noise into the checkerboard image by adding random fluctuations of color ranging between $[−60, 60]$ to each pixel. Export the resulting image in `.png` and upload it.
 
