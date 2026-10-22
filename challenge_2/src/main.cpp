@@ -122,21 +122,21 @@ int main(int argc, char *argv[]) {
     truncatedSVD<MatrixXd>(svd, 30, C30, D30);
     truncatedSVD<MatrixXd>(svd, 90, C90, D90);
 
-    std::cout << "C30 nnz: " << C30.nonZeros() << std::endl;
-    std::cout << "D30 nnz: " << D30.nonZeros() << std::endl;
-    std::cout << "C90 nnz: " << C90.nonZeros() << std::endl;
-    std::cout << "D90 nnz: " << D90.nonZeros() << std::endl;
+    std::cout << "Task 6: C30 nnz: " << C30.nonZeros() << std::endl;
+    std::cout << "Task 6: D30 nnz: " << D30.nonZeros() << std::endl;
+    std::cout << "Task 6: C90 nnz: " << C90.nonZeros() << std::endl;
+    std::cout << "Task 6: D90 nnz: " << D90.nonZeros() << std::endl;
 
     // TASK 7
     MatrixXd A30 = C30*D30.transpose();
     std::string output_path = "res/A30.png";
     saveMatrixToImage(A30, output_path);
-	std::cout << "Task 6: Image saved to " << output_path << std::endl;
+	std::cout << "Task 7: Image saved to " << output_path << std::endl;
     
     MatrixXd A90 = C90*D90.transpose();
     output_path = "res/A90.png";
     saveMatrixToImage(A90, output_path);
-	std::cout << "Task 6: Image saved to " << output_path << std::endl;
+	std::cout << "Task 7: Image saved to " << output_path << std::endl;
 
     // TASK 8
     int n = 400;
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
                 checkerboard(i,j) = 0.0;
             }
             else {
-                checkerboard(i,j) = 255.0;
+                checkerboard(i,j) = 1.0;
             }
         }
     }
@@ -157,16 +157,12 @@ int main(int argc, char *argv[]) {
               << checkerboard.norm() << std::endl;
 
     // TASK 9
-    MatrixXd noise = 60.0 * MatrixXd::Random(n,n);
+    MatrixXd noise = (60.0/255.0) * MatrixXd::Random(n,n);
     MatrixXd noisy = checkerboard + noise;
 
-    Matrix<uint8_t, Dynamic, Dynamic, RowMajor> save_image = noisy.cwiseMax(0.0).cwiseMin(255.0).cast<uint8_t>();
-
-    if (stbi_write_png("res/checknoisy.png", n, n, 1,
-                    save_image.data(), n) == 0) {
-        std::cerr << "Error saving noisy image" << std::endl;
-        return 1;
-    }
+    output_path = "res/checknoisy.png";
+    saveMatrixToImage(noisy, output_path);
+	std::cout << "Task 9: Image saved to " << output_path << std::endl;
 
     // TASK 10
     Eigen::BDCSVD<Eigen::MatrixXd> svdNoisy(
@@ -211,21 +207,13 @@ int main(int argc, char *argv[]) {
     MatrixXd A6 = C6 * D6.transpose();
     MatrixXd A12 = C12 * D12.transpose();
 
-    save_image = A6.cwiseMax(0.0).cwiseMin(255.0).cast<uint8_t>();
-
-    if(stbi_write_png("res/check6.png", n, n, 1,
-                      save_image.data(), n) == 0) {
-        std::cerr << "Error saving A6" << std::endl;
-        return 1;
-    }
-
-    save_image = A12.cwiseMax(0.0).cwiseMin(255.0).cast<uint8_t>();
-
-    if(stbi_write_png("res/check12.png", n, n, 1,
-                      save_image.data(), n) == 0) {
-        std::cerr << "Error saving A12" << std::endl;
-        return 1;
-    }
+    output_path = "res/check6.png";
+    saveMatrixToImage(A6, output_path);
+	std::cout << "Task 12: Image saved to " << output_path << std::endl;
+    
+    output_path = "res/check12.png";
+    saveMatrixToImage(A12, output_path);
+	std::cout << "Task 12: Image saved to " << output_path << std::endl;
 
     return 0;
 }
