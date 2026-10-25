@@ -66,4 +66,5 @@
 
 13. **Q**: Compare the compressed images with the original and noisy images. Comment the results.
 
-    **A**: 
+    **A**: Comparing the original deer image with its compressed versions, the reconstruction with $k=30$ is noticeably worse than with $k=90$. Because the original image has many fine details, its information is spread across a large number of singular values. Truncating at $k=30$ removes too much information, while $k=90$ keeps enough components for a good approximation.
+    Instead the checkerboard image is very simple and regular, meaning its structure can be captured by a few singular values. Because of this, using $k=6$ accurately reconstructs the pattern while filtering out the noise, which is stored in the discarded singular values. Increasing to $k=9$ brings back some of those smaller singular values, resulting in a noisier image.
